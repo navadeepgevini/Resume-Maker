@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #FAFAF9;
+  --color-ink: #1C1C1A;
+  --color-warm-gray: #6B6B63;
+  --color-accent: #33415C;
+  --color-divider: #E4E4DF;
+  --color-error: #B91C1C;
+  --color-success: #15803D;
+
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-plex-sans: var(--font-plex-sans), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), 'Courier New', monospace;
+}
+
+/* Base reset */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #FAFAF9;
+  color: #1C1C1A;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #E4E4DF;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #6B6B63;
+}
+
+/* Focus ring utility */
+*:focus-visible {
+  outline: 2px solid #33415C;
+  outline-offset: 2px;
+}
+
+/* Smooth transitions */
+input, button, select, textarea {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+/* Modal animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Crop container override */
+.reactEasyCrop_Container {
+  border-radius: 4px;
+}
