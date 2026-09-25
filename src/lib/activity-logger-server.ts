@@ -13,6 +13,7 @@ export async function logActivityServer(
   details: Record<string, unknown> = {}
 ) {
   try {
+    if (!adminDb) return;
     const logsRef = adminDb.collection('activityLogs');
     await logsRef.add({
       userId,

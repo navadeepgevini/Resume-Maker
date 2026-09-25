@@ -19,8 +19,14 @@ if (!getApps().length) {
   }
 }
 
-export const adminAuth = getAuth();
-export const adminDb = getFirestore();
+// Export safely to prevent Vercel from crashing the entire Serverless Function on startup
+export const adminAuth = (() => {
+  try { return getAuth(); } catch(e) { console.error('Failed to init adminAuth:', e); return null; }
+})();
+
+export const adminDb = (() => {
+  try { return getFirestore(); } catch(e) { console.error('Failed to init adminDb:', e); return null; }
+})();
 
 /**
  * Verifies a Firebase ID token and returns the decoded token.
@@ -28,7 +34,7 @@ export const adminDb = getFirestore();
  */
 export async function verifyIdToken(token: string) {
   try {
-    if (!token) return null;
+    if (!token || !adminAuth) return null;
     const decodedToken = await adminAuth.verifyIdToken(token);
     return decodedToken;
   } catch (error) {
