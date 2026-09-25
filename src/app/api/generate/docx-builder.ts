@@ -76,7 +76,7 @@ export async function buildDocx(data: ResumeData): Promise<Buffer> {
     data.settings.showPhoto &&
     data.personal.showPhoto &&
     data.personal.photo &&
-    data.personal.photo.length > 100;
+    data.personal.photo.length > 10;
 
   if (hasPhoto) {
     // Decode base64 photo
@@ -304,6 +304,64 @@ export async function buildDocx(data: ResumeData): Promise<Buffer> {
     }
   }
 
+  /* ---- Experience ---- */
+  if (data.experience && data.experience.length > 0) {
+    children.push(sectionHeading('Experience'));
+
+    for (const exp of data.experience) {
+      const headerRuns: TextRun[] = [
+        new TextRun({
+          text: exp.company,
+          bold: true,
+          font: 'Calibri',
+          size: 20,
+        }),
+        new TextRun({
+          text: `  ${exp.role}`,
+          font: 'Calibri',
+          italics: true,
+          size: 20,
+        }),
+      ];
+
+      if (exp.startDate && exp.endDate) {
+        headerRuns.push(
+          new TextRun({
+            text: `  |  ${exp.startDate} – ${exp.endDate}`,
+            font: 'Calibri',
+            size: 18,
+            color: '6B6B63',
+          })
+        );
+      }
+
+      children.push(
+        new Paragraph({
+          spacing: { before: 60, after: 20 },
+          children: headerRuns,
+        })
+      );
+
+      for (const bullet of exp.bullets) {
+        if (!bullet.trim() || bullet.trim() === '<p></p>') continue;
+        const cleanBullet = bullet.replace(/<[^>]+>/g, '');
+        children.push(
+          new Paragraph({
+            bullet: { level: 0 },
+            spacing: { before: 0, after: 20 },
+            children: [
+              new TextRun({
+                text: cleanBullet,
+                font: 'Calibri',
+                size: 20,
+              }),
+            ],
+          })
+        );
+      }
+    }
+  }
+
   /* ---- Projects (featured only) ---- */
   const featured = data.projects.filter((p) => p.featured);
   if (featured.length > 0) {
@@ -340,14 +398,15 @@ export async function buildDocx(data: ResumeData): Promise<Buffer> {
 
       // Bullet points
       for (const bullet of proj.bullets) {
-        if (!bullet.trim()) continue;
+        if (!bullet.trim() || bullet.trim() === '<p></p>') continue;
+        const cleanBullet = bullet.replace(/<[^>]+>/g, '');
         children.push(
           new Paragraph({
             bullet: { level: 0 },
             spacing: { before: 0, after: 20 },
             children: [
               new TextRun({
-                text: bullet,
+                text: cleanBullet,
                 font: 'Calibri',
                 size: 20,
               }),

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Build Your Resume — RESUMEMAKER',
+  title: 'Build Your Resume — Resume Maker',
   description: 'Create a polished, ATS-friendly resume with our guided step-by-step builder.',
 };
 

@@ -50,7 +50,7 @@ export function checkRateLimit(
 
 export function getClientIP(request: Request): string {
   // Use Next.js direct IP property if available (Vercel)
-  // @ts-ignore - Some Request implementations have ip
+  // @ts-expect-error Next.js headers API compatibility - Some Request implementations have ip
   if (request.ip) return request.ip;
 
   const realIp = request.headers.get('x-real-ip');

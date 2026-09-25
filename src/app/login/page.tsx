@@ -36,8 +36,13 @@ export default function LoginPage() {
     setIsLoading(true);
     setError('');
     try {
-      await loginWithGoogle();
-      router.push('/dashboard');
+      const { isNewUser } = await loginWithGoogle();
+      if (isNewUser) {
+        const newId = `res_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        router.push(`/builder/${newId}`);
+      } else {
+        router.push('/dashboard');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Google Sign-In failed. Please try again.');
     } finally {
@@ -51,13 +56,22 @@ export default function LoginPage() {
       setError('Please fill in both email and password.');
       return;
     }
+    if (mode === 'signup' && !name) {
+      setError('Please provide your full name.');
+      return;
+    }
     setIsLoading(true);
     setError('');
     try {
-      await loginWithEmail(email, password, name, mode === 'signup');
-      router.push('/dashboard');
+      const { isNewUser } = await loginWithEmail(email, password, name, mode === 'signup');
+      if (isNewUser) {
+        const newId = `res_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        router.push(`/builder/${newId}`);
+      } else {
+        router.push('/dashboard');
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Authentication failed. Please check your details.');
+      setError(err instanceof Error ? err.message : 'Authentication failed. Please check your details and try again.');
     } finally {
       setIsLoading(false);
     }
@@ -97,7 +111,7 @@ export default function LoginPage() {
             className="text-lg font-semibold tracking-tight text-[#1C1C1A]"
             style={{ fontFamily: 'var(--font-plex-sans)' }}
           >
-            RESUMEMAKER
+            Resume Maker
           </Link>
           <Link
             href="/builder/default"
@@ -117,7 +131,7 @@ export default function LoginPage() {
               className="text-2xl font-bold tracking-tight text-[#1C1C1A]"
               style={{ fontFamily: 'var(--font-plex-sans)' }}
             >
-              {mode === 'signin' ? 'Welcome back to RESUMEMAKER' : 'Create your account'}
+              {mode === 'signin' ? 'Welcome back to Resume Maker' : 'Create your account'}
             </h1>
             <p className="text-sm text-[#6B6B63]">
               {mode === 'signin'
@@ -300,7 +314,7 @@ export default function LoginPage() {
 
       {/* Footer */}
       <footer className="border-t border-[#E4E4DF] py-6 text-center text-xs text-[#6B6B63]">
-        RESUMEMAKER — Powered by Firebase & Next.js.
+        Resume Maker — Powered by Firebase & Next.js.
       </footer>
     </div>
   );

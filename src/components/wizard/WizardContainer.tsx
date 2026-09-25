@@ -1,11 +1,12 @@
 'use client';
 
-import { useResume } from '@/context/ResumeContext';
+import { useResume, canProceedToNext } from '@/context/ResumeContext';
 import { Button } from '@/components/ui/Button';
 import StepPersonal from './StepPersonal';
 import StepLinks from './StepLinks';
 import StepEducation from './StepEducation';
 import StepCertifications from './StepCertifications';
+import StepExperience from './StepExperience';
 import StepProjects from './StepProjects';
 import StepSkills from './StepSkills';
 import StepReview from './StepReview';
@@ -15,25 +16,26 @@ const STEP_COMPONENTS = [
   StepLinks,
   StepEducation,
   StepCertifications,
+  StepExperience,
   StepProjects,
   StepSkills,
   StepReview,
 ];
 
 export default function WizardContainer() {
-  const { currentStep, nextStep, prevStep, markStepCompleted, completedSteps } = useResume();
+  const { state, currentStep, nextStep, prevStep, markStepCompleted } = useResume();
 
   const StepComponent = STEP_COMPONENTS[currentStep - 1];
 
   const handleNext = () => {
-    markStepCompleted(currentStep as 1 | 2 | 3 | 4 | 5 | 6 | 7);
+    markStepCompleted(currentStep as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8);
     nextStep();
   };
 
-  const isNextDisabled = !completedSteps.has(currentStep);
+  const isNextDisabled = !canProceedToNext(currentStep, state);
 
   const nextLabel =
-    currentStep === 6 ? 'Review Resume' : currentStep === 7 ? '' : 'Continue';
+    currentStep === 7 ? 'Review Resume' : currentStep === 8 ? '' : 'Continue';
 
   return (
     <div className="flex flex-col min-h-0 flex-1">
@@ -43,7 +45,7 @@ export default function WizardContainer() {
       </div>
 
       {/* Navigation */}
-      {currentStep < 7 && (
+      {currentStep < 8 && (
         <div className="flex items-center justify-between pt-4 mt-4 border-t border-[#E4E4DF]">
           {currentStep > 1 ? (
             <Button variant="ghost" onClick={prevStep} id="wizard-back-btn">
@@ -63,7 +65,7 @@ export default function WizardContainer() {
         </div>
       )}
 
-      {currentStep === 7 && (
+      {currentStep === 8 && (
         <div className="flex items-center pt-4 mt-4 border-t border-[#E4E4DF]">
           <Button variant="ghost" onClick={prevStep} id="wizard-back-btn">
             ← Back to Skills

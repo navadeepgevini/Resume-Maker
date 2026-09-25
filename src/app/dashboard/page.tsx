@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
-import { collection, query, orderBy, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, getDoc, deleteDoc, doc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -33,14 +33,35 @@ export default function DashboardPage() {
       try {
         const resumesRef = collection(db, 'users', user!.id, 'resumes');
         const qResumes = query(resumesRef, orderBy('updatedAt', 'desc'));
-        const resumesSnap = await getDocs(qResumes);
         
-        const fetchedResumes = resumesSnap.docs.map(d => ({
+        // Add a timeout to prevent hanging if offline
+        const fetchPromise = getDocs(qResumes);
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000));
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const resumesSnap = await Promise.race([fetchPromise, timeoutPromise]) as any;
+        
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const fetchedResumes = resumesSnap.docs.map((d: any) => ({
           id: d.id,
           resumeTitle: d.data().resumeTitle || 'Untitled Resume',
           updatedAt: d.data().updatedAt,
         })) as UserResume[];
         
+        // Check legacy resume
+        try {
+          const legacyRef = doc(db, 'resumes', user!.id);
+          const legacySnap = await getDoc(legacyRef);
+          if (legacySnap.exists()) {
+            const data = legacySnap.data();
+            fetchedResumes.push({
+              id: 'default',
+              resumeTitle: data.resumeTitle || data.resumeData?.personal?.fullName || 'Legacy Resume',
+              updatedAt: data.updatedAt || new Date().toISOString(),
+            });
+          }
+        } catch(e) {}
+        
+        fetchedResumes.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
         setResumes(fetchedResumes);
       } catch (error) {
         console.error('Error fetching resumes:', error);

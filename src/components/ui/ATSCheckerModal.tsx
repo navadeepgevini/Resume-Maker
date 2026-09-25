@@ -26,6 +26,7 @@ export default function ATSCheckerModal({ isOpen, onClose }: ATSCheckerModalProp
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ScoreData | null>(null);
+  const [jobDescription, setJobDescription] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
@@ -48,6 +49,9 @@ export default function ATSCheckerModal({ isOpen, onClose }: ATSCheckerModalProp
 
     const formData = new FormData();
     formData.append('file', file);
+    if (jobDescription.trim()) {
+      formData.append('jobDescription', jobDescription.trim());
+    }
 
     try {
       const token = await auth.currentUser?.getIdToken();
@@ -109,10 +113,22 @@ export default function ATSCheckerModal({ isOpen, onClose }: ATSCheckerModalProp
     <Modal isOpen={isOpen} onClose={onClose} title="Real ATS Score Check" maxWidth="2xl">
       <div className="flex-1 w-full">
           {!result && !isScanning && (
-            <div
-              className={`border-2 border-dashed rounded-xl p-10 flex flex-col items-center justify-center text-center transition-colors cursor-pointer ${
-                isDragging ? 'border-[#33415C] bg-[#33415C]/5' : 'border-[#E4E4DF] hover:border-[#33415C] hover:bg-gray-50'
-              }`}
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-[#1C1C1A] mb-2">
+                  Target Job Description (Optional)
+                </label>
+                <textarea
+                  value={jobDescription}
+                  onChange={(e) => setJobDescription(e.target.value)}
+                  placeholder="Paste the job description here to see how well your resume matches the required keywords and skills..."
+                  className="w-full h-32 p-3 border border-[#E4E4DF] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#33415C] text-sm text-[#1C1C1A] resize-none"
+                />
+              </div>
+              <div
+                className={`border-2 border-dashed rounded-xl p-10 flex flex-col items-center justify-center text-center transition-colors cursor-pointer ${
+                  isDragging ? 'border-[#33415C] bg-[#33415C]/5' : 'border-[#E4E4DF] hover:border-[#33415C] hover:bg-gray-50'
+                }`}
               onDragOver={onDragOver}
               onDragLeave={onDragLeave}
               onDrop={onDrop}
@@ -136,6 +152,7 @@ export default function ATSCheckerModal({ isOpen, onClose }: ATSCheckerModalProp
               </div>
               <h3 className="text-lg font-medium text-[#1C1C1A] mb-1">Drop your resume here</h3>
               <p className="text-sm text-[#6B6B63]">Supports PDF, DOCX, or TXT (Max 5MB)</p>
+            </div>
             </div>
           )}
 

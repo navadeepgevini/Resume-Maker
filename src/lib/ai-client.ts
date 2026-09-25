@@ -25,7 +25,7 @@ export async function generateWithAI({ systemPrompt, userPrompt, temperature = 0
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
+          model: 'openai/gpt-oss-120b',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt }
@@ -52,7 +52,7 @@ export async function generateWithAI({ systemPrompt, userPrompt, temperature = 0
       const { GoogleGenerativeAI } = await import('@google/generative-ai');
       const genAI = new GoogleGenerativeAI(geminiKey);
       const model = genAI.getGenerativeModel({ 
-        model: 'gemini-2.0-flash',
+        model: 'gemini-3.8-flash',
         systemInstruction: systemPrompt
       });
 

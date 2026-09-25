@@ -33,7 +33,7 @@ export default function ClassicTemplate({ data }: TemplateProps) {
     data.settings.showPhoto &&
       data.personal.showPhoto &&
       data.personal.photo &&
-      data.personal.photo.length > 100
+      data.personal.photo.length > 10
   );
   const featured = data.projects.filter((p) => p.featured);
   const nonEmptySkills = data.skills.filter((c) => c.skills.length > 0);
@@ -131,6 +131,33 @@ export default function ClassicTemplate({ data }: TemplateProps) {
         </div>
       )}
 
+      {data.experience && data.experience.length > 0 && (
+        <div>
+          <SectionHeading>Experience</SectionHeading>
+          {data.experience.map((exp) => (
+            <div key={exp.id} style={{ marginBottom: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
+                <span>{exp.company}</span>
+                <span>
+                  {exp.startDate} {exp.startDate && exp.endDate ? '-' : ''} {exp.endDate}
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontStyle: 'italic' }}>
+                <span>{exp.role}</span>
+                <span>{exp.location}</span>
+              </div>
+              <ul style={{ margin: 0, paddingLeft: '20px' }}>
+                {exp.bullets.filter(b => b.trim() !== '' && b.trim() !== '<p></p>').map((bullet, idx) => (
+                  <li key={idx} style={{ marginBottom: '2px' }}>
+                    <span dangerouslySetInnerHTML={{ __html: bullet }} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
+
       {featured.length > 0 && (
         <div>
           <SectionHeading>Projects</SectionHeading>
@@ -159,9 +186,9 @@ export default function ClassicTemplate({ data }: TemplateProps) {
                 </span>
               </div>
               <ul style={{ margin: 0, paddingLeft: '20px' }}>
-                {proj.bullets.filter(b => b.trim() !== '').map((bullet, idx) => (
+                {proj.bullets.filter(b => b.trim() !== '' && b.trim() !== '<p></p>').map((bullet, idx) => (
                   <li key={idx} style={{ marginBottom: '2px' }}>
-                    {bullet}
+                    <span dangerouslySetInnerHTML={{ __html: bullet }} />
                   </li>
                 ))}
               </ul>

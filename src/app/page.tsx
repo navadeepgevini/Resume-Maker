@@ -20,7 +20,7 @@ export default function HomePage() {
             className="text-lg font-semibold tracking-tight text-[#1C1C1A]"
             style={{ fontFamily: 'var(--font-plex-sans)' }}
           >
-            RESUMEMAKER
+            Resume Maker
           </Link>
           <div className="flex items-center gap-3">
             {user ? (
@@ -200,7 +200,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="border-t border-[#E4E4DF] py-6">
         <p className="text-center text-xs text-[#6B6B63]">
-          Built with care. RESUMEMAKER — No data leaves your browser unless you log in.
+          Built with care. Resume Maker — No data leaves your browser unless you log in.
         </p>
       </footer>
 

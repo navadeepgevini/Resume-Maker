@@ -47,6 +47,16 @@ export interface ProjectEntry {
   importedFromGitHub: boolean;
 }
 
+export interface ExperienceEntry {
+  id: string;
+  company: string;
+  role: string;
+  location: string;
+  startDate: string;
+  endDate: string;
+  bullets: string[];
+}
+
 export interface SkillCategory {
   id: string;
   name: string;
@@ -61,15 +71,24 @@ export interface ResumeSettings {
   template: ResumeTemplate;
 }
 
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: string;
+}
+
 export interface ResumeData {
   personal: PersonalDetails;
   links: LinksAndProfiles;
   education: EducationEntry[];
   certifications: CertificationEntry[];
+  experience: ExperienceEntry[];
   projects: ProjectEntry[];
   skills: SkillCategory[];
   settings: ResumeSettings;
   targetJobDescription?: string;
+  chatHistory?: ChatMessage[];
 }
 
 export interface GitHubRepo {
@@ -87,14 +106,15 @@ export interface FitCheckResult {
   suggestions: string[];
 }
 
-export type WizardStep = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+export type WizardStep = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
 export const STEP_LABELS: Record<WizardStep, string> = {
   1: 'Personal',
   2: 'Links',
   3: 'Education',
   4: 'Certifications',
-  5: 'Projects',
-  6: 'Skills',
-  7: 'Review',
+  5: 'Experience',
+  6: 'Projects',
+  7: 'Skills',
+  8: 'Review',
 };

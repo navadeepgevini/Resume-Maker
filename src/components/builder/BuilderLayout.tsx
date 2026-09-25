@@ -9,6 +9,8 @@ import ResumePreview from '@/components/preview/ResumePreview';
 import FileDropZone from '@/components/ui/FileDropZone';
 import ResetDataButton from '@/components/ui/ResetDataButton';
 import ProfileCompletenessWidget from '@/components/ui/ProfileCompletenessWidget';
+import InternalATSWidget from '@/components/ui/InternalATSWidget';
+import ChatWidget from '@/components/chat/ChatWidget';
 
 export default function BuilderLayout({ children }: { children: React.ReactNode }) {
   const { state } = useResume();
@@ -26,7 +28,7 @@ export default function BuilderLayout({ children }: { children: React.ReactNode 
             className="text-lg font-semibold tracking-tight text-[#1C1C1A]"
             style={{ fontFamily: 'var(--font-plex-sans)' }}
           >
-            RESUMEMAKER
+            Resume Maker
           </Link>
 
           <div className="flex items-center gap-3">
@@ -145,9 +147,12 @@ export default function BuilderLayout({ children }: { children: React.ReactNode 
           <ResumePreview data={state} />
           <div className="p-4">
             <ProfileCompletenessWidget data={state} />
+            <InternalATSWidget />
           </div>
         </div>
       </main>
+
+      <ChatWidget />
     </div>
   );
 }

@@ -11,13 +11,19 @@ interface ActivityLog {
   userId: string;
   userEmail: string;
   action: string;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
   timestamp: Date | null;
 }
 
 interface UserResume {
   id: string;
-  resumeData?: Record<string, any>;
+  resumeData?: {
+    personal?: {
+      fullName?: string;
+      email?: string;
+    };
+    [key: string]: unknown;
+  };
   updatedAt: string;
 }
 
@@ -81,6 +87,7 @@ export default function AdminDashboard() {
       return;
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
   }, [user, authLoading, router, isAdmin, fetchData]);
 

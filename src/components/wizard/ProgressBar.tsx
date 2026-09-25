@@ -7,6 +7,7 @@ const STEP_LABELS = [
   'Links',
   'Education',
   'Certifications',
+  'Experience',
   'Projects',
   'Skills',
   'Review',
@@ -44,7 +45,7 @@ export default function ProgressBar() {
                 {isCompleted ? (
                   <button
                     type="button"
-                    onClick={() => goToStep(stepNum as 1|2|3|4|5|6|7)}
+                    onClick={() => goToStep(stepNum as 1|2|3|4|5|6|7|8)}
                     className="flex items-center justify-center w-9 h-9 rounded-full bg-[#33415C] text-white transition-colors hover:bg-[#2a3650] focus:outline-none focus:ring-2 focus:ring-[#33415C] focus:ring-offset-2 cursor-pointer"
                     aria-label={`Go to step ${stepNum}: ${label} (completed)`}
                   >

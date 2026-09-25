@@ -11,6 +11,7 @@ import type {
   LinksAndProfiles,
   EducationEntry,
   CertificationEntry,
+  ExperienceEntry,
   ProjectEntry,
   SkillCategory,
   ResumeSettings,
@@ -59,6 +60,7 @@ export const defaultResumeData: ResumeData = {
   links: defaultLinks,
   education: [],
   certifications: [],
+  experience: [],
   projects: [],
   skills: defaultSkills,
   settings: defaultSettings,
@@ -67,15 +69,15 @@ export const defaultResumeData: ResumeData = {
 // ---- Step Validation ----
 // Each step is "complete" only when its required fields contain actual valid data.
 
-function isStepComplete(step: number, data: ResumeData): boolean {
+export function isStepComplete(step: number, data: ResumeData): boolean {
   switch (step) {
-    case 1: // Personal — require name, email, and phone at minimum
+    case 1: // Personal
       return !!(
         data.personal.fullName?.trim() &&
         data.personal.email?.trim() &&
         data.personal.phone?.trim()
       );
-    case 2: // Links — at least one link filled in
+    case 2: // Links
       return !!(
         data.links.linkedin?.trim() ||
         data.links.github?.trim() ||
@@ -84,20 +86,49 @@ function isStepComplete(step: number, data: ResumeData): boolean {
         data.links.hackerrank?.trim() ||
         data.links.personalSite?.trim()
       );
-    case 3: // Education — at least one entry with institution and degree
+    case 3: // Education
       return data.education.length > 0 &&
-        data.education.some(e => e.institution?.trim() && e.degree?.trim());
-    case 4: // Certifications — optional step, always consider complete
-      return true;
-    case 5: // Projects — at least one project with name
+        data.education.every(e => e.institution?.trim() && e.degree?.trim());
+    case 4: // Certifications
+      return data.certifications.length > 0 &&
+        data.certifications.every(c => c.title?.trim());
+    case 5: // Experience
+      return data.experience.length > 0 && 
+        data.experience.every(e => e.company?.trim() && e.role?.trim());
+    case 6: // Projects
       return data.projects.length > 0 &&
-        data.projects.some(p => p.name?.trim());
-    case 6: // Skills — at least one category with at least one skill
+        data.projects.every(p => p.name?.trim());
+    case 7: // Skills
       return data.skills.some(cat => cat.skills.length > 0);
-    case 7: // Review — always "not completable" (it's the final step, not a data entry step)
+    case 8: // Review
       return false;
     default:
       return false;
+  }
+}
+
+export function canProceedToNext(step: number, data: ResumeData): boolean {
+  // Personal details are absolutely required
+  if (step === 1) return isStepComplete(1, data);
+  
+  // For lists, they can proceed if the list is empty (they skipped it) 
+  // OR if all items in the list are fully filled out (isStepComplete is true).
+  // This prevents them from moving forward with half-filled entries.
+  switch (step) {
+    case 2: // Links are optional
+      return true;
+    case 3: // Education optional? usually yes for freshers without degrees, but let's say they can skip or complete
+      return data.education.length === 0 || isStepComplete(3, data);
+    case 4: // Certs optional
+      return data.certifications.length === 0 || isStepComplete(4, data);
+    case 5: // Experience optional
+      return data.experience.length === 0 || isStepComplete(5, data);
+    case 6: // Projects optional
+      return data.projects.length === 0 || isStepComplete(6, data);
+    case 7: // Skills optional
+      return true; // You can always proceed past skills
+    default:
+      return true;
   }
 }
 
@@ -108,10 +139,13 @@ type ResumeAction =
   | { type: 'SET_LINKS'; payload: Partial<LinksAndProfiles> }
   | { type: 'SET_EDUCATION'; payload: EducationEntry[] }
   | { type: 'SET_CERTIFICATIONS'; payload: CertificationEntry[] }
+  | { type: 'SET_EXPERIENCE'; payload: ExperienceEntry[] }
   | { type: 'SET_PROJECTS'; payload: ProjectEntry[] }
   | { type: 'SET_SKILLS'; payload: SkillCategory[] }
   | { type: 'SET_SETTINGS'; payload: Partial<ResumeSettings> }
   | { type: 'SET_JOB_DESCRIPTION'; payload: string }
+  | { type: 'ADD_CHAT_MESSAGE'; payload: import('@/types/resume').ChatMessage }
+  | { type: 'SET_CHAT_HISTORY'; payload: import('@/types/resume').ChatMessage[] }
   | { type: 'LOAD_DATA'; payload: ResumeData }
   | { type: 'RESET' };
 
@@ -127,6 +161,8 @@ function resumeReducer(state: ResumeData, action: ResumeAction): ResumeData {
       return { ...state, education: action.payload };
     case 'SET_CERTIFICATIONS':
       return { ...state, certifications: action.payload };
+    case 'SET_EXPERIENCE':
+      return { ...state, experience: action.payload };
     case 'SET_PROJECTS':
       return { ...state, projects: action.payload };
     case 'SET_SKILLS':
@@ -135,18 +171,24 @@ function resumeReducer(state: ResumeData, action: ResumeAction): ResumeData {
       return { ...state, settings: { ...state.settings, ...action.payload } };
     case 'SET_JOB_DESCRIPTION':
       return { ...state, targetJobDescription: action.payload };
+    case 'ADD_CHAT_MESSAGE':
+      return { ...state, chatHistory: [...(state.chatHistory || []), action.payload] };
+    case 'SET_CHAT_HISTORY':
+      return { ...state, chatHistory: action.payload };
     case 'LOAD_DATA':
       return {
         personal: { ...defaultResumeData.personal, ...(action.payload.personal || {}) },
         links: { ...defaultResumeData.links, ...(action.payload.links || {}) },
         education: Array.isArray(action.payload.education) ? action.payload.education : defaultResumeData.education,
         certifications: Array.isArray(action.payload.certifications) ? action.payload.certifications : defaultResumeData.certifications,
+        experience: Array.isArray(action.payload.experience) ? action.payload.experience : defaultResumeData.experience,
         projects: Array.isArray(action.payload.projects) ? action.payload.projects : defaultResumeData.projects,
         skills: Array.isArray(action.payload.skills) && action.payload.skills.length > 0
           ? action.payload.skills
           : defaultResumeData.skills,
         settings: { ...defaultResumeData.settings, ...(action.payload.settings || {}) },
         targetJobDescription: action.payload.targetJobDescription || '',
+        chatHistory: Array.isArray(action.payload.chatHistory) ? action.payload.chatHistory : [],
       };
     case 'RESET':
       return JSON.parse(JSON.stringify(defaultResumeData));
@@ -193,7 +235,7 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
   const [githubRepos, setGithubRepos] = React.useState<GitHubRepo[]>([]);
   const [isGithubLoading, setIsGithubLoading] = React.useState(false);
   const [hydrated, setHydrated] = React.useState(false);
-  const { user } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
   const params = useParams();
   const resumeId = (params?.id as string) || 'default';
   
@@ -202,7 +244,7 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
   // Compute completedSteps from actual data — no manual tracking needed
   const completedSteps = useMemo(() => {
     const set = new Set<number>();
-    for (let step = 1; step <= 7; step++) {
+    for (let step = 1; step <= 8; step++) {
       if (isStepComplete(step, state)) {
         set.add(step);
       }
@@ -218,16 +260,36 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
 
   // Hydrate from Firestore (if user) or localStorage on mount/auth change
   useEffect(() => {
+    if (isAuthLoading) return;
+    
     let isMounted = true;
 
     async function loadData() {
-      // If we aren't in the builder, don't auto-load and overwrite state unless it's the guest user.
-      // But we still need to load the guest data.
-      try {
-        if (user) {
-          // Fetch from Firestore
+      const dynamicStorageKey = `${STORAGE_KEY}_${resumeId}`;
+      
+      // 1. STALE-WHILE-REVALIDATE: Load from local storage INSTANTLY to prevent UI lag
+      const saved = localStorage.getItem(dynamicStorageKey) || localStorage.getItem(STORAGE_KEY);
+      if (saved && isMounted) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.resumeData) {
+            dispatch({ type: 'LOAD_DATA', payload: { ...defaultResumeData, ...parsed.resumeData } });
+          }
+          if (parsed.currentStep) setCurrentStep(parsed.currentStep);
+        } catch(e) {}
+      }
+      
+      // Allow UI to render instantly with cached data
+      if (isMounted) setHydrated(true);
+
+      // 2. Fetch from Firestore in the background to ensure data is strictly up to date
+      if (user) {
+        try {
           const docRef = doc(db, 'users', user.id, 'resumes', resumeId);
-          const docSnap = await getDoc(docRef);
+          const fetchPromise = getDoc(docRef);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const timeoutPromise = new Promise<any>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000));
+          const docSnap = await Promise.race([fetchPromise, timeoutPromise]);
 
           if (docSnap.exists()) {
             const data = docSnap.data();
@@ -238,68 +300,28 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
               setCurrentStep(data.currentStep);
             }
           } else if (resumeId === 'default') {
-            // Check legacy migration path for the default resume
+            // Check legacy migration path
             const legacyRef = doc(db, 'resumes', user.id);
             const legacySnap = await getDoc(legacyRef);
             if (legacySnap.exists() && isMounted) {
-               const data = legacySnap.data();
-               if (data.resumeData) {
-                 dispatch({ type: 'LOAD_DATA', payload: { ...defaultResumeData, ...data.resumeData } });
-               }
-               if (data.currentStep) setCurrentStep(data.currentStep);
-               
-               // Save to new path immediately
-               await setDoc(docRef, { ...data, updatedAt: new Date().toISOString() });
-               
-               // Delete legacy document to clean up tech debt
-               try {
-                 const { deleteDoc } = await import('firebase/firestore');
-                 await deleteDoc(legacyRef);
-               } catch (e) {
-                 console.warn('Failed to delete legacy resume doc:', e);
-               }
-            } else {
-               // See if they have local storage data as a guest
-               const saved = localStorage.getItem(STORAGE_KEY);
-               if (saved) {
-                 const parsed = JSON.parse(saved);
-                 if (parsed.resumeData && isMounted) {
-                   dispatch({ type: 'LOAD_DATA', payload: { ...defaultResumeData, ...parsed.resumeData } });
-                   if (parsed.currentStep) setCurrentStep(parsed.currentStep);
-                   
-                   await setDoc(docRef, {
-                     resumeData: parsed.resumeData,
-                     currentStep: parsed.currentStep || 1,
-                     updatedAt: new Date().toISOString(),
-                   });
-                   localStorage.removeItem(STORAGE_KEY);
-                 }
-               } else if (isMounted) {
-                  // Completely fresh default resume
-                  dispatch({ type: 'RESET' });
-               }
+              const data = legacySnap.data();
+              if (data.resumeData) {
+                dispatch({ type: 'LOAD_DATA', payload: { ...defaultResumeData, ...data.resumeData } });
+              }
+              if (data.currentStep) setCurrentStep(data.currentStep);
+              await setDoc(docRef, { ...data, updatedAt: new Date().toISOString() });
+              try {
+                const { deleteDoc } = await import('firebase/firestore');
+                await deleteDoc(legacyRef);
+              } catch (e) {}
             }
-          } else if (isMounted) {
-             // New resume that doesn't exist yet
-             dispatch({ type: 'RESET' });
+          } else if (!saved && isMounted) {
+            // If nothing in local cache and nothing in cloud, it's a completely fresh resume
+            dispatch({ type: 'RESET' });
           }
-        } else {
-          // 3. Guest: Load from Local Storage
-          const saved = localStorage.getItem(STORAGE_KEY);
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            if (parsed.resumeData && isMounted) {
-              dispatch({ type: 'LOAD_DATA', payload: { ...defaultResumeData, ...parsed.resumeData } });
-            }
-            if (parsed.currentStep && isMounted) {
-              setCurrentStep(parsed.currentStep);
-            }
-          }
+        } catch (e) {
+          console.warn('Background sync failed or timed out. Relying on local cache.', e);
         }
-      } catch (e) {
-        console.warn('Failed to load saved data:', e);
-      } finally {
-        if (isMounted) setHydrated(true);
       }
     }
 
@@ -308,7 +330,7 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
     return () => {
       isMounted = false;
     };
-  }, [user, resumeId]);
+  }, [user, resumeId, isAuthLoading]);
 
   // Save to Firestore (if user) or localStorage (debounced)
   useEffect(() => {
@@ -330,16 +352,16 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
             // Keep track of some metadata for the dashboard
             resumeTitle: state.personal.headline || state.personal.fullName || 'Untitled Resume'
           }, { merge: true });
-        } else {
-          // Save to Local Storage for guests
-          localStorage.setItem(
-            STORAGE_KEY,
-            JSON.stringify({
-              resumeData: state,
-              currentStep,
-            })
-          );
         }
+        
+        // ALWAYS Save to Local Storage as a robust fallback (prevents data loss if Firestore fails)
+        localStorage.setItem(
+          `${STORAGE_KEY}_${resumeId}`,
+          JSON.stringify({
+            resumeData: state,
+            currentStep,
+          })
+        );
       } catch (e) {
         console.warn('Failed to save data:', e);
       }
@@ -358,12 +380,13 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
               updatedAt: new Date().toISOString(),
               resumeTitle: state.personal.headline || state.personal.fullName || 'Untitled Resume'
             }, { merge: true }).catch(e => console.warn('Unmount save failed:', e));
-          } else {
-            localStorage.setItem(
-              STORAGE_KEY,
-              JSON.stringify({ resumeData: state, currentStep })
-            );
           }
+          
+          // ALWAYS save to Local Storage on unmount as fallback
+          localStorage.setItem(
+            `${STORAGE_KEY}_${resumeId}`,
+            JSON.stringify({ resumeData: state, currentStep })
+          );
         } catch (e) {
           console.warn('Failed to flush save on unmount:', e);
         }
@@ -378,7 +401,7 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
   const nextStep = useCallback(() => {
     setCurrentStep((prev) => {
       const next = (prev + 1) as WizardStep;
-      return next <= 7 ? next : prev;
+      return next <= 8 ? next : prev;
     });
   }, []);
 

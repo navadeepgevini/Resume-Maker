@@ -55,7 +55,7 @@ export function Input({
   const descriptionText = hasError ? error : helperText;
 
   return (
-    <div className={`flex w-full flex-col gap-1.5 ${className}`}>
+    <div className={`flex w-full flex-col gap-1.5 ${className}`} suppressHydrationWarning>
       {/* Label */}
       <label
         htmlFor={id}

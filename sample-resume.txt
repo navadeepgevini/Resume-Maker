@@ -1,0 +1,53 @@
+# John Doe
+Software Engineer
+New York, NY | johndoe@example.com | (555) 123-4567 | github.com/johndoe | linkedin.com/in/johndoe
+
+## Summary
+Experienced software engineer with 5+ years of experience in full-stack development, specializing in React, Node.js, and cloud architecture. Proven track record of delivering scalable web applications and leading cross-functional teams.
+
+## Experience
+
+### Senior Frontend Developer
+Acme Corp | San Francisco, CA (Remote)
+June 2021 - Present
+- Architected and implemented a new micro-frontend architecture using Next.js and Module Federation, reducing initial load time by 40%.
+- Led a team of 4 developers to migrate a legacy AngularJS application to React 18, improving code maintainability and test coverage by 60%.
+- Integrated OpenAI APIs to build a smart search feature, increasing user engagement by 25%.
+- Established CI/CD pipelines using GitHub Actions for automated testing and deployment.
+
+### Software Engineer
+TechFlow Solutions | New York, NY
+January 2018 - May 2021
+- Developed RESTful APIs using Node.js and Express, serving over 1M requests daily.
+- Optimized database queries in PostgreSQL, reducing average response time by 30%.
+- Built responsive user interfaces using React and Tailwind CSS.
+- Collaborated with product managers and designers to deliver features on a 2-week agile sprint cycle.
+
+## Education
+
+### Bachelor of Science in Computer Science
+University of Technology | Boston, MA
+September 2014 - May 2018
+- GPA: 3.8/4.0
+- Relevant Coursework: Data Structures, Algorithms, Web Development, Database Systems
+
+## Skills
+- Languages: JavaScript (ES6+), TypeScript, Python, HTML5, CSS3
+- Frameworks/Libraries: React, Next.js, Node.js, Express, Tailwind CSS, Redux
+- Tools & Cloud: Git, Docker, AWS (S3, EC2, Lambda), Firebase, Supabase
+- Methodologies: Agile, Scrum, TDD, CI/CD
+
+## Projects
+
+### Resume Builder Platform
+- Built a full-stack SaaS application allowing users to generate ATS-friendly resumes.
+- Implemented AI-powered bullet point generation using Gemini API.
+- Integrated Stripe for subscription payments and Supabase for user data storage.
+
+### Task Management CLI
+- Developed a command-line interface tool in Python for managing daily tasks and syncing with Google Calendar.
+- Published to PyPI with over 5k downloads in the first month.
+
+## Certifications
+- AWS Certified Developer - Associate | Amazon Web Services (2022)
+- Meta Front-End Developer Professional Certificate | Coursera (2021)

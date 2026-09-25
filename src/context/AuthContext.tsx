@@ -9,6 +9,7 @@ import {
   signOut,
   onAuthStateChanged,
   updateProfile,
+  getAdditionalUserInfo,
   type User as FirebaseUser,
 } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase';
@@ -25,8 +26,8 @@ export interface AuthUser {
 interface AuthContextType {
   user: AuthUser | null;
   isLoading: boolean;
-  loginWithGoogle: () => Promise<AuthUser>;
-  loginWithEmail: (email: string, password: string, name?: string, isSignUp?: boolean) => Promise<AuthUser>;
+  loginWithGoogle: () => Promise<{ user: AuthUser; isNewUser: boolean }>;
+  loginWithEmail: (email: string, password: string, name?: string, isSignUp?: boolean) => Promise<{ user: AuthUser; isNewUser: boolean }>;
   resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -45,7 +46,14 @@ function friendlyAuthError(err: unknown): Error {
     'auth/too-many-requests': 'Too many attempts. Please wait a moment and try again.',
     'auth/popup-closed-by-user': 'Sign-in was cancelled.',
     'auth/unauthorized-domain': 'Google Sign-In is not enabled for this domain yet.',
+    'auth/operation-not-allowed': 'Email/Password sign-in is disabled in your Firebase console.',
   };
+  
+  // Log the unknown code so we can debug it in the console
+  if (!messages[code]) {
+    console.error(`Unknown Firebase Auth Error Code: ${code}`);
+  }
+  
   return new Error(messages[code] || 'Authentication failed. Please check your details and try again.');
 }
 
@@ -115,12 +123,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loginWithGoogle = useCallback(async () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
+      const isNewUser = getAdditionalUserInfo(result)?.isNewUser ?? false;
       const mapped = mapFirebaseUser(result.user);
       setUser(mapped);
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(mapped));
+      try {
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(mapped));
+      } catch (e) {}
       syncResumePersonal(mapped);
       logActivityClient(mapped.id, mapped.email, 'USER_LOGIN');
-      return mapped;
+      return { user: mapped, isNewUser };
     } catch (err: unknown) {
       throw friendlyAuthError(err);
     }
@@ -143,18 +154,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             displayName: name || cred.user.displayName,
           } as FirebaseUser);
           setUser(mapped);
-          localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(mapped));
+          try {
+            localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(mapped));
+          } catch(e) {}
           syncResumePersonal(mapped);
           logActivityClient(mapped.id, mapped.email, 'USER_LOGIN', { isSignUp: true });
-          return mapped;
+          return { user: mapped, isNewUser: true };
         } else {
           const cred = await signInWithEmailAndPassword(auth, email, password);
           const mapped = mapFirebaseUser(cred.user);
           setUser(mapped);
-          localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(mapped));
+          try {
+            localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(mapped));
+          } catch(e) {}
           syncResumePersonal(mapped);
           logActivityClient(mapped.id, mapped.email, 'USER_LOGIN', { isSignUp: false });
-          return mapped;
+          return { user: mapped, isNewUser: false };
         }
       } catch (err) {
         throw friendlyAuthError(err);

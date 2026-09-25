@@ -90,6 +90,7 @@ export default function FileDropZone({ compact = false }: FileDropZoneProps) {
               links: { ...defaultResumeData.links, ...(resumeData.links || {}) },
               education: Array.isArray(resumeData.education) ? resumeData.education : [],
               certifications: Array.isArray(resumeData.certifications) ? resumeData.certifications : [],
+              experience: Array.isArray(resumeData.experience) ? resumeData.experience : [],
               projects: Array.isArray(resumeData.projects) ? resumeData.projects : [],
               skills: Array.isArray(resumeData.skills) && resumeData.skills.length > 0
                 ? resumeData.skills

@@ -76,6 +76,8 @@ export function buildResumeHTML(data: ResumeData): string {
     .project-tech { font-family: 'Courier New', Courier, monospace; font-size: 9pt; color: #6B6B63; }
     .bullet-list { margin: 2px 0 4px 18px; padding: 0; }
     .bullet-list li { margin-bottom: 1px; }
+    .bullet-list p { display: inline; margin: 0; padding: 0; }
+    .bullet-list a { color: #1C1C1A; text-decoration: underline; }
     .skill-cat { font-weight: 700; }
     .skill-items { font-family: 'Courier New', Courier, monospace; font-size: 9pt; }
   </style>
@@ -120,6 +122,17 @@ export function buildResumeHTML(data: ResumeData): string {
     return `<div class="entry"><span class="entry-title">${esc(cert.title)}</span>${details.length > 0 ? ` <span class="entry-details">— ${details.join('  |  ')}</span>` : ''}</div>`;
   }).join('\n')}` : ''}
 
+  ${data.experience && data.experience.length > 0 ? `
+  <div class="section-heading">Experience</div>
+  ${data.experience.map(exp => `
+    <div class="entry">
+      <span class="entry-title">${esc(exp.company)}</span>
+      <span style="font-weight: normal; margin-left: 8px;">${esc(exp.role)}</span>
+      ${exp.startDate && exp.endDate ? `<span class="entry-details" style="float: right;">${esc(exp.startDate)} – ${esc(exp.endDate)}</span>` : ''}
+    </div>
+    ${exp.bullets.filter(b => b.trim() && b.trim() !== '<p></p>').length > 0 ? `<ul class="bullet-list">${exp.bullets.filter(b => b.trim() && b.trim() !== '<p></p>').map(b => `<li>${b}</li>`).join('')}</ul>` : ''}
+  `).join('\n')}` : ''}
+
   ${featured.length > 0 ? `
   <div class="section-heading">Projects</div>
   ${featured.map(proj => `
@@ -127,7 +140,7 @@ export function buildResumeHTML(data: ResumeData): string {
       <span class="entry-title">${esc(proj.name)}</span>
       ${proj.techStack.length > 0 ? `<span class="project-tech">  ${proj.techStack.map(esc).join(', ')}</span>` : ''}
     </div>
-    ${proj.bullets.filter(b => b.trim()).length > 0 ? `<ul class="bullet-list">${proj.bullets.filter(b => b.trim()).map(b => `<li>${esc(b)}</li>`).join('')}</ul>` : ''}
+    ${proj.bullets.filter(b => b.trim() && b.trim() !== '<p></p>').length > 0 ? `<ul class="bullet-list">${proj.bullets.filter(b => b.trim() && b.trim() !== '<p></p>').map(b => `<li>${b}</li>`).join('')}</ul>` : ''}
   `).join('\n')}` : ''}
 
   ${nonEmptySkills.length > 0 ? `

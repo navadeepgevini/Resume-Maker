@@ -36,7 +36,7 @@ export default function BoldTemplate({ data }: TemplateProps) {
     data.settings.showPhoto &&
       data.personal.showPhoto &&
       data.personal.photo &&
-      data.personal.photo.length > 100
+      data.personal.photo.length > 10
   );
   const featured = data.projects.filter((p) => p.featured);
   const nonEmptySkills = data.skills.filter((c) => c.skills.length > 0);
@@ -148,6 +148,35 @@ export default function BoldTemplate({ data }: TemplateProps) {
         </div>
       )}
 
+      {data.experience && data.experience.length > 0 && (
+        <div>
+          <SectionHeading>Experience</SectionHeading>
+          {data.experience.map((exp) => (
+            <div key={exp.id} style={{ marginBottom: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px' }}>
+                <span>
+                  <strong style={{ fontSize: '11pt' }}>{exp.company}</strong>
+                  <span style={{ color: '#6B6B63', fontStyle: 'italic', marginLeft: '6px' }}>{exp.role}</span>
+                </span>
+                <span style={{ fontWeight: 'bold' }}>
+                  {exp.startDate} {exp.startDate && exp.endDate ? '-' : ''} {exp.endDate}
+                </span>
+              </div>
+              <div style={{ color: '#6B6B63', fontSize: '9.5pt', marginBottom: '6px' }}>
+                {exp.location}
+              </div>
+              <ul style={{ margin: 0, paddingLeft: '20px' }}>
+                {exp.bullets.filter(b => b.trim() !== '' && b.trim() !== '<p></p>').map((bullet, idx) => (
+                  <li key={idx} style={{ marginBottom: '4px' }}>
+                    <span dangerouslySetInnerHTML={{ __html: bullet }} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
+
       {featured.length > 0 && (
         <div>
           <SectionHeading>Projects</SectionHeading>
@@ -176,9 +205,9 @@ export default function BoldTemplate({ data }: TemplateProps) {
                 </span>
               </div>
               <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '9.5pt' }}>
-                {proj.bullets.filter(b => b.trim() !== '').map((bullet, idx) => (
+                {proj.bullets.filter(b => b.trim() !== '' && b.trim() !== '<p></p>').map((bullet, idx) => (
                   <li key={idx} style={{ marginBottom: '3px' }}>
-                    {bullet}
+                    <span dangerouslySetInnerHTML={{ __html: bullet }} />
                   </li>
                 ))}
               </ul>

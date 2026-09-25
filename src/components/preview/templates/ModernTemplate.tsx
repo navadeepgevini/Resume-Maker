@@ -14,7 +14,7 @@ export default function ModernTemplate({ data }: TemplateProps) {
     data.settings.showPhoto &&
       data.personal.showPhoto &&
       data.personal.photo &&
-      data.personal.photo.length > 100
+      data.personal.photo.length > 10
   );
   const featured = data.projects.filter((p) => p.featured);
   const nonEmptySkills = data.skills.filter((c) => c.skills.length > 0);
@@ -174,6 +174,35 @@ export default function ModernTemplate({ data }: TemplateProps) {
           </div>
         )}
 
+        {data.experience && data.experience.length > 0 && (
+          <div style={{ marginBottom: '24px' }}>
+            <h2 style={{ fontSize: '14pt', fontWeight: 'bold', color: '#33415C', borderBottom: '2px solid #33415C', paddingBottom: '4px', marginBottom: '12px', marginTop: 0 }}>
+              EXPERIENCE
+            </h2>
+            {data.experience.map((exp) => (
+              <div key={exp.id} style={{ marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <span style={{ fontWeight: 'bold', fontSize: '11pt', color: '#1C1C1A' }}>{exp.company}</span>
+                  <span style={{ fontSize: '9.5pt', color: '#6B6B63', fontWeight: 'bold' }}>
+                    {exp.startDate} {exp.startDate && exp.endDate ? '-' : ''} {exp.endDate}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <span style={{ fontStyle: 'italic', color: '#33415C' }}>{exp.role}</span>
+                  <span style={{ fontSize: '9.5pt', color: '#6B6B63' }}>{exp.location}</span>
+                </div>
+                <ul style={{ margin: 0, paddingLeft: '18px', color: '#1C1C1A' }}>
+                  {exp.bullets.filter(b => b.trim() !== '' && b.trim() !== '<p></p>').map((bullet, idx) => (
+                    <li key={idx} style={{ marginBottom: '4px' }}>
+                      <span dangerouslySetInnerHTML={{ __html: bullet }} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+
         {featured.length > 0 && (
           <div>
             <h2 style={{ fontSize: '14pt', fontWeight: 'bold', color: '#33415C', borderBottom: '2px solid #33415C', paddingBottom: '4px', marginBottom: '12px', marginTop: 0 }}>
@@ -204,9 +233,9 @@ export default function ModernTemplate({ data }: TemplateProps) {
                   </div>
                 )}
                 <ul style={{ margin: 0, paddingLeft: '20px' }}>
-                {proj.bullets.filter(b => b.trim() !== '').map((bullet, idx) => (
+                {proj.bullets.filter(b => b.trim() !== '' && b.trim() !== '<p></p>').map((bullet, idx) => (
                   <li key={idx} style={{ marginBottom: '2px' }}>
-                    {bullet}
+                    <span dangerouslySetInnerHTML={{ __html: bullet }} />
                   </li>
                   ))}
                 </ul>

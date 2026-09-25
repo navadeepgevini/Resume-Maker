@@ -53,10 +53,34 @@ export async function POST(request: NextRequest) {
       .jpeg({ quality: 85 })
       .toBuffer();
 
-    const base64 = processedBuffer.toString('base64');
-    const dataUri = `data:image/jpeg;base64,${base64}`;
+    // Generate a unique filename
+    const filename = `photo_${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
 
-    return NextResponse.json({ image: dataUri });
+    // Initialize Supabase Server Client
+    const { createClient } = await import('@/lib/supabase/server');
+    const supabase = await createClient();
+
+    // Upload to Supabase Storage (bucket named 'resume-assets')
+    const { error: uploadError } = await supabase
+      .storage
+      .from('resume-assets')
+      .upload(`photos/${filename}`, processedBuffer, {
+        contentType: 'image/jpeg',
+        upsert: false
+      });
+
+    if (uploadError) {
+      console.error('Supabase upload error:', uploadError);
+      throw new Error(`Storage upload failed: ${uploadError.message}`);
+    }
+
+    // Get the public URL for the uploaded file
+    const { data: publicUrlData } = supabase
+      .storage
+      .from('resume-assets')
+      .getPublicUrl(`photos/${filename}`);
+
+    return NextResponse.json({ image: publicUrlData.publicUrl });
   } catch (err) {
     console.error('Photo upload processing failed:', err);
     return NextResponse.json(

@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
-import { getCroppedImg, blobToBase64 } from '@/lib/cropImage';
+import { getCroppedImg } from '@/lib/cropImage';
 import { Button } from '@/components/ui/Button';
 
 interface PhotoCropperProps {
@@ -28,6 +28,9 @@ export default function PhotoCropper({ imageSrc, onSave, onCancel }: PhotoCroppe
 
     try {
       const blob = await getCroppedImg(imageSrc, croppedAreaPixels, 400, 0.85);
+      
+      // Import blobToBase64 dynamically or we can just read it. Wait, blobToBase64 is in cropImage.ts!
+      const { blobToBase64 } = await import('@/lib/cropImage');
       const base64 = await blobToBase64(blob);
       onSave(base64);
     } catch (err) {

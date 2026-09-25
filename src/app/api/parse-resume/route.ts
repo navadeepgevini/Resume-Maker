@@ -220,7 +220,7 @@ async function parseImageWithAI(base64Data: string, mimeType: string): Promise<R
       console.log('Attempting image parse with Gemini Vision...');
       const { GoogleGenerativeAI } = await import('@google/generative-ai');
       const genAI = new GoogleGenerativeAI(geminiKey);
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+      const model = genAI.getGenerativeModel({ model: 'gemini-3.8-flash' });
 
       const result = await model.generateContent([
         IMAGE_PARSE_PROMPT,

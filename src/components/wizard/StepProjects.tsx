@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { ChipInput } from '@/components/ui/ChipInput';
 import { Toggle } from '@/components/ui/Toggle';
 import { SortableList } from '@/components/ui/SortableList';
+import { RichTextInput } from '@/components/ui/RichTextInput';
 import { MAX_FEATURED_PROJECTS } from '@/lib/constants';
 import type { ProjectEntry, GitHubRepo } from '@/types/resume';
 
@@ -291,11 +292,10 @@ export default function StepProjects() {
                           <div key={reactKey} className="space-y-1.5">
                             <div className="flex items-center gap-2">
                               <span className="text-xs text-[#6B6B63] w-4">•</span>
-                              <input
+                              <RichTextInput
                                 value={bullet}
-                                onChange={(e) => updateBullet(project.id, i, e.target.value)}
+                                onChange={(val) => updateBullet(project.id, i, val)}
                                 placeholder={`Achievement or outcome #${i + 1}`}
-                                className="flex-1 h-9 px-3 border border-[#E4E4DF] rounded-[4px] text-sm text-[#1C1C1A] placeholder:text-[#6B6B63]/50 focus:outline-none focus:ring-2 focus:ring-[#33415C] focus:border-transparent"
                               />
                               <button
                                 type="button"
