@@ -71,7 +71,12 @@ export default function FileDropZone({ compact = false }: FileDropZoneProps) {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to parse file');
+        let errMessage = 'Failed to parse file';
+        try {
+          const errData = await response.json();
+          if (errData.error) errMessage = errData.error;
+        } catch(e) {}
+        throw new Error(errMessage);
       }
 
       const result = await response.json();
