@@ -198,6 +198,8 @@ async function parseWithAI(text: string): Promise<Record<string, unknown> | null
   return cleanAndParseJSON(responseText);
 }
 
+export const maxDuration = 60; // Allow up to 60 seconds on Vercel
+
 /**
  * Parse resume from an image using vision-capable AI models.
  * Gemini is preferred for vision (native multimodal support).
@@ -216,24 +218,28 @@ async function parseImageWithAI(base64Data: string, mimeType: string): Promise<R
 
   // Try Gemini first for vision (best multimodal support)
   if (geminiKey) {
-    try {
-      console.log('Attempting image parse with Gemini Vision...');
-      const { GoogleGenerativeAI } = await import('@google/generative-ai');
-      const genAI = new GoogleGenerativeAI(geminiKey);
-      const model = genAI.getGenerativeModel({ model: 'gemini-3.8-flash' });
+    const visionModels = ['gemini-3.8-flash', 'gemini-3.5-flash-lite'];
+    for (const modelName of visionModels) {
+      try {
+        console.log(`Attempting image parse with Gemini Vision (${modelName})...`);
+        const { GoogleGenerativeAI } = await import('@google/generative-ai');
+        const genAI = new GoogleGenerativeAI(geminiKey);
+        const model = genAI.getGenerativeModel({ model: modelName });
 
-      const result = await model.generateContent([
-        IMAGE_PARSE_PROMPT,
-        {
-          inlineData: {
-            data: base64Data,
-            mimeType: mimeType,
+        const result = await model.generateContent([
+          IMAGE_PARSE_PROMPT,
+          {
+            inlineData: {
+              data: base64Data,
+              mimeType: mimeType,
+            },
           },
-        },
-      ]);
-      responseText = result.response.text();
-    } catch (e) {
-      console.error('Gemini Vision error:', e);
+        ]);
+        responseText = result.response.text();
+        if (responseText) break;
+      } catch (e) {
+        console.warn(`Gemini Vision error with ${modelName}:`, e);
+      }
     }
   }
 
@@ -270,15 +276,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Authentication
+    // 2. Authentication (Optional for guests; verified and logged for authenticated users)
     const authHeader = request.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    const token = authHeader.split('Bearer ')[1];
-    const decodedToken = await verifyIdToken(token);
-    if (!decodedToken) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let decodedToken: Record<string, unknown> | null = null;
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.split('Bearer ')[1];
+      decodedToken = await verifyIdToken(token) as Record<string, unknown> | null;
     }
 
     const formData = await request.formData();
@@ -319,7 +322,9 @@ export async function POST(request: NextRequest) {
       const parsedData = await parseImageWithAI(base64Data, mimeType);
 
       // Log the activity
-      await logActivityServer(decodedToken.uid as string, (decodedToken.email as string) || null, 'RESUME_UPLOADED_FOR_PARSE', {
+      const uid = (decodedToken?.uid as string) || 'guest-user';
+      const email = (decodedToken?.email as string) || null;
+      await logActivityServer(uid, email, 'RESUME_UPLOADED_FOR_PARSE', {
         fileName,
         fileType: mimeType,
         fileSize: file.size,
@@ -370,7 +375,9 @@ export async function POST(request: NextRequest) {
     const parsedData = await parseWithAI(extractedText);
 
     // Log the activity
-    await logActivityServer(decodedToken.uid as string, (decodedToken.email as string) || null, 'RESUME_UPLOADED_FOR_PARSE', {
+    const uid = (decodedToken?.uid as string) || 'guest-user';
+    const email = (decodedToken?.email as string) || null;
+    await logActivityServer(uid, email, 'RESUME_UPLOADED_FOR_PARSE', {
       fileName,
       fileType: file.type,
       fileSize: file.size,

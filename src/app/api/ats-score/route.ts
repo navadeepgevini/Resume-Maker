@@ -7,6 +7,8 @@ import { logActivityServer } from '@/lib/activity-logger-server';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
+export const maxDuration = 60; // Allow up to 60 seconds on Vercel
+
 const ATS_EVALUATION_PROMPT = `You are an expert ATS (Applicant Tracking System) software and a senior recruiter. 
 Evaluate the following resume text strictly and provide a JSON response containing an overall score, category breakdown, and 3 actionable suggestions to improve the resume's ATS performance.
 
@@ -82,15 +84,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Authentication
+    // 2. Authentication (Optional for guests; verified and logged for authenticated users)
     const authHeader = request.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    const token = authHeader.split('Bearer ')[1];
-    const decodedToken = await verifyIdToken(token);
-    if (!decodedToken) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let decodedToken: Record<string, unknown> | null = null;
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.split('Bearer ')[1];
+      decodedToken = await verifyIdToken(token) as Record<string, unknown> | null;
     }
 
     const formData = await request.formData();
@@ -151,7 +150,9 @@ export async function POST(request: NextRequest) {
     const scoreData = await evaluateWithAI(extractedText, jobDescription || undefined);
 
     // Log the activity
-    await logActivityServer(decodedToken.uid as string, (decodedToken.email as string) || null, 'ATS_SCORE_CHECKED', {
+    const uid = (decodedToken?.uid as string) || 'guest-user';
+    const email = (decodedToken?.email as string) || null;
+    await logActivityServer(uid, email, 'ATS_SCORE_CHECKED', {
       fileName: file ? file.name.toLowerCase() : 'internal-builder-text',
       fileType: file ? file.type : 'text/json',
       fileSize: file ? file.size : extractedText.length,

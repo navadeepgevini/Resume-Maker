@@ -71,11 +71,25 @@ export default function FileDropZone({ compact = false }: FileDropZoneProps) {
       });
 
       if (!response.ok) {
-        let errMessage = 'Failed to parse file';
+        let errMessage = `Server error (${response.status})`;
         try {
           const errData = await response.json();
           if (errData.error) errMessage = errData.error;
-        } catch(e) {}
+          else if (errData.message) errMessage = errData.message;
+        } catch {
+          try {
+            const errText = await response.text();
+            if (errText && errText.length < 200 && !errText.includes('<!DOCTYPE')) {
+              errMessage = errText;
+            } else if (response.status === 504) {
+              errMessage = 'Server timed out while processing file. Please try a shorter file or try again.';
+            } else if (response.status === 413) {
+              errMessage = 'File is too large for the server. Maximum size is 5MB.';
+            } else if (response.status === 401) {
+              errMessage = 'Authentication required. Please sign in or refresh the page.';
+            }
+          } catch {}
+        }
         throw new Error(errMessage);
       }
 
@@ -111,7 +125,7 @@ export default function FileDropZone({ compact = false }: FileDropZoneProps) {
         // AI parsing unavailable — text was extracted but not structured
         setStatus('error');
         setErrorMsg(
-          result.message || 'AI parsing is not available. Please set GEMINI_API_KEY in .env.local to enable Smart Import.'
+          result.message || 'AI parsing is not available. Please verify GEMINI_API_KEY and GROQ_API_KEY environment variables are configured.'
         );
       }
     } catch (err: unknown) {

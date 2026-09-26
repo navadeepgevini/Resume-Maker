@@ -48,18 +48,22 @@ export async function generateWithAI({ systemPrompt, userPrompt, temperature = 0
 
   // Fallback to Gemini
   if (!responseText && geminiKey) {
-    try {
-      const { GoogleGenerativeAI } = await import('@google/generative-ai');
-      const genAI = new GoogleGenerativeAI(geminiKey);
-      const model = genAI.getGenerativeModel({ 
-        model: 'gemini-3.8-flash',
-        systemInstruction: systemPrompt
-      });
+    const geminiModels = ['gemini-3.8-flash', 'gemini-3.5-flash-lite'];
+    for (const modelName of geminiModels) {
+      try {
+        const { GoogleGenerativeAI } = await import('@google/generative-ai');
+        const genAI = new GoogleGenerativeAI(geminiKey);
+        const model = genAI.getGenerativeModel({ 
+          model: modelName,
+          systemInstruction: systemPrompt
+        });
 
-      const result = await model.generateContent(userPrompt);
-      responseText = result.response.text();
-    } catch (e) {
-      console.error('Gemini API error:', e);
+        const result = await model.generateContent(userPrompt);
+        responseText = result.response.text();
+        if (responseText) break;
+      } catch (e) {
+        console.warn(`Gemini model ${modelName} error, trying next fallback:`, e);
+      }
     }
   }
 

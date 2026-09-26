@@ -5,7 +5,7 @@ import * as jose from 'jose';
 if (!getApps().length) {
   try {
     initializeApp({
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'chatbot-dca8d',
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'resume-builder-cb18f',
     });
     console.log('Firebase Admin initialized successfully');
   } catch (error) {
@@ -26,7 +26,7 @@ export async function verifyIdToken(token: string) {
   try {
     if (!token) return null;
 
-    const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'chatbot-dca8d';
+    const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'resume-builder-cb18f';
 
     // 1. Fetch Google's public certificates
     const response = await fetch('https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com');
