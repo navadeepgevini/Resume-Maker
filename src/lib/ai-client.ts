@@ -25,7 +25,7 @@ export async function generateWithAI({ systemPrompt, userPrompt, temperature = 0
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'qwen/qwen3.8-27b',
+          model: 'openai/gpt-oss-120b',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt }
