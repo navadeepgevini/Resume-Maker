@@ -113,7 +113,7 @@ export default function BuilderLayout({ children }: { children: React.ReactNode 
                 </svg>
               </button>
             </div>
-            <FileDropZone compact={true} />
+            <FileDropZone compact={false} />
           </div>
         </div>
       )}
