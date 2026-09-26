@@ -237,43 +237,10 @@ async function parseImageWithAI(base64Data: string, mimeType: string): Promise<R
     }
   }
 
-  // Fallback to Groq vision if Gemini failed
-  if (!responseText && groqKey) {
-    try {
-      console.log('Attempting image parse with Groq Vision...');
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${groqKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'llama-3.2-90b-vision-preview',
-          messages: [{
-            role: 'user',
-            content: [
-              { type: 'text', text: IMAGE_PARSE_PROMPT },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: `data:${mimeType};base64,${base64Data}`
-                }
-              }
-            ]
-          }],
-          temperature: 0.1
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        responseText = data.choices[0]?.message?.content || '';
-      } else {
-        console.error('Groq Vision API error:', await response.text());
-      }
-    } catch (e) {
-      console.error('Groq Vision fetch failed:', e);
-    }
+  // Note: Groq vision models have been decommissioned. Gemini is the sole vision provider.
+  if (!responseText && !geminiKey) {
+    console.warn('Gemini API key is required for image parsing — no vision provider available.');
+    return null;
   }
 
   if (!responseText) {
@@ -352,7 +319,7 @@ export async function POST(request: NextRequest) {
       const parsedData = await parseImageWithAI(base64Data, mimeType);
 
       // Log the activity
-      await logActivityServer(decodedToken.uid, decodedToken.email || null, 'RESUME_UPLOADED_FOR_PARSE', {
+      await logActivityServer(decodedToken.uid as string, (decodedToken.email as string) || null, 'RESUME_UPLOADED_FOR_PARSE', {
         fileName,
         fileType: mimeType,
         fileSize: file.size,
@@ -403,7 +370,7 @@ export async function POST(request: NextRequest) {
     const parsedData = await parseWithAI(extractedText);
 
     // Log the activity
-    await logActivityServer(decodedToken.uid, decodedToken.email || null, 'RESUME_UPLOADED_FOR_PARSE', {
+    await logActivityServer(decodedToken.uid as string, (decodedToken.email as string) || null, 'RESUME_UPLOADED_FOR_PARSE', {
       fileName,
       fileType: file.type,
       fileSize: file.size,

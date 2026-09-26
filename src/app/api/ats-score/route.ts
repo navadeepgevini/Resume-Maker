@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
     const scoreData = await evaluateWithAI(extractedText, jobDescription || undefined);
 
     // Log the activity
-    await logActivityServer(decodedToken.uid, decodedToken.email || null, 'ATS_SCORE_CHECKED', {
+    await logActivityServer(decodedToken.uid as string, (decodedToken.email as string) || null, 'ATS_SCORE_CHECKED', {
       fileName: file ? file.name.toLowerCase() : 'internal-builder-text',
       fileType: file ? file.type : 'text/json',
       fileSize: file ? file.size : extractedText.length,
