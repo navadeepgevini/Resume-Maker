@@ -91,23 +91,6 @@ export async function buildDocx(data: ResumeData): Promise<Buffer> {
         rows: [
           new TableRow({
             children: [
-              // Headshot cell
-              new TableCell({
-                width: { size: 12, type: WidthType.PERCENTAGE },
-                borders: NO_BORDERS,
-                verticalAlign: VerticalAlign.CENTER,
-                children: [
-                  new Paragraph({
-                    children: [
-                      new ImageRun({
-                        data: imgBuffer,
-                        transformation: { width: 72, height: 72 },
-                        type: 'jpg',
-                      }),
-                    ],
-                  }),
-                ],
-              }),
               // Name + headline cell
               new TableCell({
                 borders: NO_BORDERS,
@@ -139,6 +122,24 @@ export async function buildDocx(data: ResumeData): Promise<Buffer> {
                         }),
                       ]
                     : []),
+                ],
+              }),
+              // Headshot cell (now on the right)
+              new TableCell({
+                width: { size: 12, type: WidthType.PERCENTAGE },
+                borders: NO_BORDERS,
+                verticalAlign: VerticalAlign.CENTER,
+                children: [
+                  new Paragraph({
+                    alignment: AlignmentType.RIGHT,
+                    children: [
+                      new ImageRun({
+                        data: imgBuffer,
+                        transformation: { width: 72, height: 72 },
+                        type: 'jpg',
+                      }),
+                    ],
+                  }),
                 ],
               }),
             ],

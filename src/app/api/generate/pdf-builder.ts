@@ -86,12 +86,12 @@ export function buildResumeHTML(data: ResumeData): string {
   ${hasPhoto ? `
   <table class="header-table">
     <tr>
-      <td style="width: 82px; padding-right: 10px;">
-        <img src="${data.personal.photo}" class="headshot" />
-      </td>
       <td>
         <div class="name">${esc(data.personal.fullName)}</div>
         ${data.personal.headline ? `<div class="headline">${esc(data.personal.headline)}</div>` : ''}
+      </td>
+      <td style="width: 82px; padding-left: 10px; text-align: right;">
+        <img src="${data.personal.photo}" class="headshot" style="margin-left: auto;" />
       </td>
     </tr>
   </table>` : `
