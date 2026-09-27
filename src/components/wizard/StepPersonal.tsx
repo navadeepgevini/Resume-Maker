@@ -252,7 +252,7 @@ export default function StepPersonal() {
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/jpeg,image/png"
+            accept="image/jpeg,image/png,image/jpg,image/webp"
             onChange={handleFileChange}
             className="hidden"
             aria-label="Upload photo"

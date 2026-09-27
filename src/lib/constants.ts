@@ -66,7 +66,7 @@ export const MAX_FEATURED_PROJECTS = 4;
 export const MAX_PHOTO_SIZE = 5 * 1024 * 1024;
 
 // Accepted photo MIME types
-export const ACCEPTED_PHOTO_TYPES = ['image/jpeg', 'image/png'] as const;
+export const ACCEPTED_PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'] as const;
 
 // Debounce delay for preview updates (ms)
 export const PREVIEW_DEBOUNCE_MS = 300;
