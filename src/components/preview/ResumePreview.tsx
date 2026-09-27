@@ -60,6 +60,7 @@ export default function ResumePreview({ data, onOverflowChange }: ResumePreviewP
         }}
       >
         <div
+          id="resume-preview-document"
           ref={documentRef}
           className="bg-white shadow-[0_1px_4px_rgba(0,0,0,0.08)]"
           style={{

@@ -10,7 +10,7 @@ import ATSCompatibilityCard from '@/components/ui/ATSCompatibilityCard';
 import type { ResumeTemplate } from '@/types/resume';
 
 type PageSize = 'letter' | 'a4';
-type ExportFormat = 'docx' | 'pdf';
+type ExportFormat = 'docx' | 'pdf' | 'jpg';
 
 export default function StepReview() {
   const { state, dispatch } = useResume();
@@ -53,6 +53,26 @@ export default function StepReview() {
       setDownloadError(null);
 
       try {
+        if (format === 'jpg') {
+          const element = document.getElementById('resume-preview-document');
+          if (!element) throw new Error('Preview element not found on page.');
+          
+          const html2canvas = (await import('html2canvas')).default;
+          // Temporarily ensure high quality by scaling up
+          const canvas = await html2canvas(element, { scale: 2, useCORS: true, logging: false });
+          const url = canvas.toDataURL('image/jpeg', 0.95);
+          
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `${fileName}.jpg`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          setDownloading(null);
+          return;
+        }
+
         const response = await fetch(
           `/api/generate?format=${encodeURIComponent(format)}`,
           {
@@ -255,6 +275,16 @@ export default function StepReview() {
           id="download-pdf-btn"
         >
           {downloading === 'pdf' ? 'Generating…' : 'Download .pdf'}
+        </Button>
+
+        <Button
+          variant="secondary"
+          onClick={() => handleDownload('jpg')}
+          disabled={downloading !== null}
+          loading={downloading === 'jpg'}
+          id="download-jpg-btn"
+        >
+          {downloading === 'jpg' ? 'Generating…' : 'Download .jpg'}
         </Button>
       </div>
 
