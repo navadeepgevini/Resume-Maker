@@ -52,6 +52,18 @@ export default function StepReview() {
       setDownloading(format);
       setDownloadError(null);
 
+      // Open the window synchronously to bypass popup blockers
+      let printWin: Window | null = null;
+      if (format === 'pdf') {
+        printWin = window.open('', '_blank', 'width=850,height=1100');
+        if (!printWin) {
+          setDownloadError('Popup blocked. Please allow popups to download the PDF.');
+          setDownloading(null);
+          return;
+        }
+        printWin.document.write('<html><body><h2 style="font-family: sans-serif; text-align: center; margin-top: 20%; color: #333;">Generating PDF, please wait...</h2></body></html>');
+      }
+
       try {
         const response = await fetch(
           `/api/generate?format=${encodeURIComponent(format)}`,
@@ -72,11 +84,9 @@ export default function StepReview() {
           );
         }
 
-        if (format === 'pdf') {
+        if (format === 'pdf' && printWin) {
           const html = await response.text();
-          const printWin = window.open('', '_blank', 'width=850,height=1100');
-          if (printWin) {
-            printWin.document.open();
+          printWin.document.open();
             printWin.document.write(html);
             printWin.document.close();
 
@@ -117,7 +127,6 @@ export default function StepReview() {
             } else {
               printWin.onload = () => setTimeout(triggerPrint, 300);
             }
-          }
         } else {
           const blob = await response.blob();
           const url = URL.createObjectURL(blob);
@@ -130,6 +139,9 @@ export default function StepReview() {
           setTimeout(() => URL.revokeObjectURL(url), 5000);
         }
       } catch (err: unknown) {
+        if (printWin && !printWin.closed) {
+          printWin.close();
+        }
         setDownloadError(
           err instanceof Error ? err.message : 'Download failed. Please try again.',
         );
