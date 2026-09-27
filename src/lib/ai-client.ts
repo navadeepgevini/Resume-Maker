@@ -48,7 +48,7 @@ export async function generateWithAI({ systemPrompt, userPrompt, temperature = 0
 
   // Fallback to Gemini
   if (!responseText && geminiKey) {
-    const geminiModels = ['gemini-3.8-flash', 'gemini-3.5-flash-lite'];
+    const geminiModels = ['gemini-1.5-pro', 'gemini-1.5-flash'];
     for (const modelName of geminiModels) {
       try {
         const { GoogleGenerativeAI } = await import('@google/generative-ai');

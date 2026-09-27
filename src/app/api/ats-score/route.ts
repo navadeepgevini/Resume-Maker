@@ -7,7 +7,7 @@ import { logActivityServer } from '@/lib/activity-logger-server';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
-export const maxDuration = 60; // Allow up to 60 seconds on Vercel
+// Max duration removed to support Vercel Hobby plan
 
 const ATS_EVALUATION_PROMPT = `You are an expert ATS (Applicant Tracking System) software and a senior recruiter. 
 Evaluate the following resume text strictly and provide a JSON response containing an overall score, category breakdown, and 3 actionable suggestions to improve the resume's ATS performance.

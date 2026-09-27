@@ -1,11 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyIdToken } from '@/lib/firebase-admin';
 import { checkRateLimit, getClientIP } from '../generate/rate-limiter';
-import { extractTextFromPDF, extractTextFromDOCX } from '@/lib/text-extraction';
 import { generateWithAI, cleanAndParseJSON } from '@/lib/ai-client';
-import { logActivityServer } from '@/lib/activity-logger-server';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+// Keep native and Firebase dependencies out of the function startup path. A failure
+// loading either package on Vercel must not make every file upload unavailable.
+async function verifyOptionalAuth(token: string) {
+  try {
+    const { verifyIdToken } = await import('@/lib/firebase-admin');
+    return await verifyIdToken(token);
+  } catch (error) {
+    console.error('Optional Firebase token verification failed:', error);
+    return null;
+  }
+}
+
+async function logUploadActivity(
+  userId: string,
+  userEmail: string | null,
+  details: Record<string, unknown>
+) {
+  try {
+    const { logActivityServer } = await import('@/lib/activity-logger-server');
+    await logActivityServer(userId, userEmail, 'RESUME_UPLOADED_FOR_PARSE', details);
+  } catch (error) {
+    console.error('Resume upload activity logging failed:', error);
+  }
+}
 
 // Structured prompt for AI to parse resume text into our schema
 const PARSE_PROMPT = `You are a resume parsing assistant. Extract structured data from the following resume text and return ONLY valid JSON matching this exact schema (no markdown, no backticks, just raw JSON):
@@ -198,7 +220,7 @@ async function parseWithAI(text: string): Promise<Record<string, unknown> | null
   return cleanAndParseJSON(responseText);
 }
 
-export const maxDuration = 60; // Allow up to 60 seconds on Vercel
+// Max duration removed to support Vercel Hobby plan
 
 /**
  * Parse resume from an image using vision-capable AI models.
@@ -218,7 +240,7 @@ async function parseImageWithAI(base64Data: string, mimeType: string): Promise<R
 
   // Try Gemini first for vision (best multimodal support)
   if (geminiKey) {
-    const visionModels = ['gemini-3.8-flash', 'gemini-3.5-flash-lite'];
+    const visionModels = ['gemini-1.5-pro', 'gemini-1.5-flash'];
     for (const modelName of visionModels) {
       try {
         console.log(`Attempting image parse with Gemini Vision (${modelName})...`);
@@ -281,7 +303,7 @@ export async function POST(request: NextRequest) {
     let decodedToken: Record<string, unknown> | null = null;
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.split('Bearer ')[1];
-      decodedToken = await verifyIdToken(token) as Record<string, unknown> | null;
+      decodedToken = await verifyOptionalAuth(token) as Record<string, unknown> | null;
     }
 
     const formData = await request.formData();
@@ -324,7 +346,7 @@ export async function POST(request: NextRequest) {
       // Log the activity
       const uid = (decodedToken?.uid as string) || 'guest-user';
       const email = (decodedToken?.email as string) || null;
-      await logActivityServer(uid, email, 'RESUME_UPLOADED_FOR_PARSE', {
+      await logUploadActivity(uid, email, {
         fileName,
         fileType: mimeType,
         fileSize: file.size,
@@ -352,8 +374,10 @@ export async function POST(request: NextRequest) {
     let extractedText = '';
 
     if (isPDF) {
+      const { extractTextFromPDF } = await import('@/lib/text-extraction');
       extractedText = await extractTextFromPDF(buffer);
     } else if (isDOCX) {
+      const { extractTextFromDOCX } = await import('@/lib/text-extraction');
       extractedText = await extractTextFromDOCX(buffer);
     } else {
       extractedText = buffer.toString('utf-8');
@@ -377,7 +401,7 @@ export async function POST(request: NextRequest) {
     // Log the activity
     const uid = (decodedToken?.uid as string) || 'guest-user';
     const email = (decodedToken?.email as string) || null;
-    await logActivityServer(uid, email, 'RESUME_UPLOADED_FOR_PARSE', {
+    await logUploadActivity(uid, email, {
       fileName,
       fileType: file.type,
       fileSize: file.size,
