@@ -52,18 +52,6 @@ export default function StepReview() {
       setDownloading(format);
       setDownloadError(null);
 
-      // Open the window synchronously to bypass popup blockers
-      let printWin: Window | null = null;
-      if (format === 'pdf') {
-        printWin = window.open('', '_blank', 'width=850,height=1100');
-        if (!printWin) {
-          setDownloadError('Popup blocked. Please allow popups to download the PDF.');
-          setDownloading(null);
-          return;
-        }
-        printWin.document.write('<html><body><h2 style="font-family: sans-serif; text-align: center; margin-top: 20%; color: #333;">Generating PDF, please wait...</h2></body></html>');
-      }
-
       try {
         const response = await fetch(
           `/api/generate?format=${encodeURIComponent(format)}`,
@@ -84,49 +72,44 @@ export default function StepReview() {
           );
         }
 
-        if (format === 'pdf' && printWin) {
+        if (format === 'pdf') {
           const html = await response.text();
-          printWin.document.open();
-            printWin.document.write(html);
-            printWin.document.close();
+          
+          // Create an invisible iframe
+          const iframe = document.createElement('iframe');
+          iframe.style.position = 'fixed';
+          iframe.style.right = '0';
+          iframe.style.bottom = '0';
+          iframe.style.width = '0';
+          iframe.style.height = '0';
+          iframe.style.border = '0';
+          document.body.appendChild(iframe);
+          
+          const iframeDoc = iframe.contentWindow?.document || iframe.contentDocument;
+          if (iframeDoc) {
+            iframeDoc.open();
+            iframeDoc.write(html);
+            iframeDoc.close();
 
-            // Use a timeout to ensure the page renders before printing.
-            // The afterprint event (or a fallback timeout) closes the popup,
-            // preventing the freeze that occurred when users canceled print.
             const triggerPrint = () => {
-              printWin.focus();
-              printWin.print();
+              iframe.contentWindow?.focus();
+              iframe.contentWindow?.print();
             };
 
-            // Clean up: close the popup after print completes or is canceled
-            const cleanup = () => {
-              try {
-                printWin.close();
-              } catch {
-                // Window might already be closed
-              }
-            };
-
-            // afterprint fires after the print dialog is dismissed (print or cancel)
-            printWin.addEventListener('afterprint', cleanup, { once: true });
-
-            // Fallback: if afterprint doesn't fire (some browsers), close after 60s
-            const fallbackTimer = setTimeout(() => {
-              try {
-                if (!printWin.closed) printWin.close();
-              } catch {
-                // ignore
-              }
-            }, 60000);
-
-            printWin.addEventListener('afterprint', () => clearTimeout(fallbackTimer), { once: true });
-
-            // Wait for the document to fully load before printing
-            if (printWin.document.readyState === 'complete') {
+            // Wait for the document inside iframe to fully load before printing
+            if (iframeDoc.readyState === 'complete') {
               setTimeout(triggerPrint, 300);
             } else {
-              printWin.onload = () => setTimeout(triggerPrint, 300);
+              iframe.onload = () => setTimeout(triggerPrint, 300);
             }
+          }
+
+          // Clean up the iframe after 60 seconds (enough time to print/cancel)
+          setTimeout(() => {
+            if (document.body.contains(iframe)) {
+              document.body.removeChild(iframe);
+            }
+          }, 60000);
         } else {
           const blob = await response.blob();
           const url = URL.createObjectURL(blob);
@@ -139,9 +122,6 @@ export default function StepReview() {
           setTimeout(() => URL.revokeObjectURL(url), 5000);
         }
       } catch (err: unknown) {
-        if (printWin && !printWin.closed) {
-          printWin.close();
-        }
         setDownloadError(
           err instanceof Error ? err.message : 'Download failed. Please try again.',
         );
